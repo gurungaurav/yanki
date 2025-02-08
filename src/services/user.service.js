@@ -1,41 +1,31 @@
-import CustomError from "../handlers/errors/customError.js";
 import { userSchema } from "../models/user.js";
 
 class UserService {
-  getUserById = async (userId) => {
-    try {
-      const user = await userSchema
-        .findById({ _id: userId })
-        .select("-password");
-      if (!user) {
-        throw new CustomError("User not found");
-      }
-      return user;
-    } catch (error) {
-      throw new CustomError(error.message);
+  async getUserById(userId) {
+    const user = await userSchema.findById(userId).select("-password");
+    if (!user) {
+      throw new Error("User not found");
     }
-  };
+    return user;
+  }
 
-  getUserByEmail = async (email) => {
-    try {
-      const user = await userSchema.findOne(email).select("-password");
-      if (!user) {
-        throw new CustomError("User not found");
-      }
-      return user;
-    } catch (error) {
-      throw new CustomError(error.message);
-    }
-  };
+  async getUserByEmail(email) {
+    const user = await userSchema.findOne({ email }).select("-password");
 
-  getAllUsers = async () => {
-    try {
-      const users = await userSchema.find().select("-password");
-      return users;
-    } catch (error) {
-      throw new CustomError(error.message);
+    return user;
+  }
+
+  async getAllUsers() {
+    const users = await userSchema.find().select("-password");
+    if (!users.length) {
+      throw new Error("No users found");
     }
-  };
+    return users;
+  }
+
+  async registerUser(userDTO) {
+    return await userSchema.create(userDTO);
+  }
 }
 
 export const userService = new UserService();

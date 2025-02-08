@@ -4,4 +4,4 @@ const CategorySchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
 });
 
-export const categorySchema = mongoose.model("Category", CategorySchema);
+export const categorySchema = mongoose.model("categories", CategorySchema);

@@ -3,20 +3,12 @@ import { userService } from "../../services/user.service.js";
 export const checkUserExistence = async (req, res, next) => {
   try {
     const userDTO = req.body;
+    console.log(userDTO);
+
     const userExists = await userService.getUserByEmail(userDTO.email);
     if (userExists) {
-      return res.status(400).json({
-        success: false,
-        message: "Validation errors",
-        errors: [
-          {
-            field: "email",
-            message: "User has been already registered with this email",
-          },
-        ],
-      });
+      throw new Error("User has already been registered");
     }
-
     req.user = userExists;
     next();
   } catch (e) {

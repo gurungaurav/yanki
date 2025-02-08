@@ -1,8 +1,8 @@
-export const errorHandler = (error, res) => {
+export const errorHandler = (error, req, res, next) => {
   const errorMessage = error?.message || "Something went wrong";
-  const status = error.status ? error.status : 500;
+  const statusCode = error.statusCode || 500;
 
-  return res.status(status).json({
+  return res.status(statusCode).json({
     success: false,
     message: errorMessage,
   });

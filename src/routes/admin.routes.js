@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { successHandler } from "../../handlers/success/successHandler.js";
+import { successHandler } from "../handlers/success/successHandler.js";
 
 export const adminRoutes = Router();
 

@@ -24,7 +24,7 @@ app.use("/uploads", express.static("uploads"));
 
 app.use(express.json());
 
-app.use("/api/v1", indexRoutes);
+app.use("/api", indexRoutes);
 
 //Error Handlers
 app.use(errorRoute404Handler);

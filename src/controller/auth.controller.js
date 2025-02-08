@@ -1,8 +1,8 @@
 import { checkPassword, hashPassword } from "../utils/bcryptPass.js";
 import { userService } from "../services/user.service.js";
 import { successHandler } from "../handlers/success/successHandler.js";
-import CustomError from "../handlers/errors/customError.js";
 import { JWTCreation } from "../utils/token-manager.js";
+import { userSchema } from "../models/user.js";
 
 //!Class for controlling authentication and authorization like login, regi,logout, refresh tokens, etc.
 class AuthController {
@@ -12,25 +12,30 @@ class AuthController {
       const userDTO = req.body;
 
       if (userDTO.confirmPassword !== userDTO.password) {
-        throw new CustomError("Password should match", 400);
+        throw new Error("Password should match", 400);
       }
+
       const hashedPass = await hashPassword(userDTO.confirmPassword);
 
-      //!Removing confirm password
-      const { confirmPassword, ...userWithoutConfirmPassword } = userDTO;
-
-      const hashedUser = {
-        ...userWithoutConfirmPassword,
+      const newUser = new userSchema({
+        firstName: userDTO.firstName,
+        lastName: userDTO.lastName,
+        email: userDTO.email,
+        username: userDTO.username,
         password: hashedPass,
-      };
+        phoneNumber: userDTO.phoneNumber,
+        address: userDTO.address,
+        role: userDTO.role,
+      });
 
-      const userAddition = await userService.registerUser(hashedUser);
+      const userAddition = await userService.registerUser(newUser);
 
-      if (userAddition) {
-        return successHandler(res, 201, null, "User registered successfully.");
-      } else {
-        throw new CustomError("User registration failed", 400);
-      }
+      return successHandler(
+        res,
+        201,
+        userAddition,
+        "User registered successfully."
+      );
     } catch (e) {
       next(e);
     }
@@ -50,7 +55,7 @@ class AuthController {
           success: false,
           message: "Validation errors",
           errors: [{ field: "password", message: "Password did'not matched" }],
-          // throw new CustomError("Password did'not matched", 400);
+          // throw new Error("Password did'not matched", 400);
         });
       }
 
@@ -88,7 +93,7 @@ class AuthController {
     try {
       const cookies = req.cookies;
 
-      if (!cookies?.token) throw new CustomError("No token recieved", 204);
+      if (!cookies?.token) throw new Error("No token recieved", 204);
 
       res.clearCookie("token", {
         httpOnly: true,

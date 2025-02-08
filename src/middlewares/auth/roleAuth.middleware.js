@@ -1,4 +1,3 @@
-import CustomError from "../../handlers/errors/customError.js";
 import { verifyAccessJwtTokenMiddleware } from "./jwt.middleware.js";
 
 const adminAuth = async (req, res, next) => {
@@ -10,7 +9,7 @@ const adminAuth = async (req, res, next) => {
 
       next();
     } else {
-      throw new CustomError("You have no authorization", 401);
+      throw new Error("You have no authorization");
     }
   } catch (e) {
     next(e);
@@ -23,11 +22,11 @@ const clientAuth = async (req, res, next) => {
       if (req.user.userId !== req.params.userId) {
         console.log(req.user, req.params, "jajsjas");
 
-        throw new CustomError("You have no authorization non-user", 401);
+        throw new Error("You have no authorization non-user", 401);
       }
       next();
     } else {
-      throw new CustomError("You have no authorization", 401);
+      throw new Error("You have no authorization");
     }
   } catch (e) {
     next(e);

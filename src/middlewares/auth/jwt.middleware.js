@@ -1,4 +1,3 @@
-import CustomError from "../../handlers/errors/customError.js";
 import { userService } from "../../services/user.service.js";
 import { JWTVerification } from "../../utils/token-manager.js";
 
@@ -10,32 +9,32 @@ export const verifyAccessJwtTokenMiddleware = async (req, res, next) => {
     // console.log(bearerToken);
 
     if (!bearerToken) {
-      throw new CustomError("Access Token expired", 401);
+      throw new Error("Access Token expired", 401);
     }
 
     const [bearer, token] = bearerToken.split(" ");
 
     if (bearer !== "Bearer") {
-      throw new CustomError(
+      throw new Error(
         "Invalid token type. Token must be in 'Bearer <token>' format.",
         400
       );
     }
 
     if (!token) {
-      throw new CustomError("Invalid token. Token cannot be empty.", 400);
+      throw new Error("Invalid token. Token cannot be empty.", 400);
     }
 
     const verifiedToken = JWTVerification(token);
 
     if (!verifiedToken) {
-      throw new CustomError("Invalid token. Failed to verify token.", 401);
+      throw new Error("Invalid token. Failed to verify token.", 401);
     }
 
     const user = await userService.getUserById(verifiedToken.userId);
 
     if (!user) {
-      throw new CustomError("User not found.", 404);
+      throw new Error("User not found.", 404);
     }
 
     req.user = user;

@@ -1,6 +1,5 @@
 import multer, { FileFilterCallback, Multer } from "multer";
-import { Request } from "express-serve-static-core";
-import CustomError from "../handlers/errors/customError";
+import Error from "../handlers/errors/Error";
 
 // Multer storage configuration
 const storage = multer.memoryStorage();
@@ -18,7 +17,7 @@ const fileFilter = (req, file, cb) => {
     cb(null, true);
   } else {
     cb(
-      new CustomError(
+      new Error(
         "Invalid file type. Only JPEG, PNG, GIF, and SVG are allowed.",
         400
       )

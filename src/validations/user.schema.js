@@ -1,10 +1,12 @@
-import * as yup from "yup"; // Import all of yup
+import * as yup from "yup";
 
 export const userRegisterSchema = yup.object({
-  userId: yup.string(),
-  name: yup.string().required(),
+  firstName: yup.string().required(),
+  lastName: yup.string().required(),
+  username: yup.string().required(),
   email: yup.string().email().required(),
-  phoneNumber: yup.string(),
+  phoneNumber: yup.string().required().min(10).max(10),
+  address: yup.string().required(),
   password: yup
     .string()
     .min(6, "Password must be at least 6 characters long")
