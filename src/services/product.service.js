@@ -1,24 +1,49 @@
+import { categorySchema } from "../models/category.js";
+import { imageSchema } from "../models/image.js";
 import { productSchema } from "../models/products.js";
 
 class ProductService {
-  async getProductById(userId) {
-    const product = await productService.findById(userId).select();
+  async getProductById(productId) {
+    const product = await productSchema
+      .findOne({ _id: productId, isDeleted: false })
+      .lean();
+
     if (!product) {
       throw new Error("Product not found");
     }
-    return product;
+    const category = await categorySchema
+      .findOne({ _id: product.categoryId })
+      .select("name");
+
+    const images = await imageSchema.find({ productId }).select("imageUrl");
+
+    return { ...product, category, images };
   }
 
-  async getAllProducts() {
-    const users = await productSchema.find().select("-password");
-    if (!users.length) {
-      throw new Error("No products found");
-    }
-    return users;
+  async getProducts(filter) {
+    const products = await productSchema.find(filter).lean();
+
+    const productList = await Promise.all(
+      products.map((product) => this.getProductById(product._id))
+    );
+
+    console.log(productList);
+
+    return productList;
   }
 
   async addProduct(productDTO) {
     return await productSchema.create(productDTO);
+  }
+
+  async softDeleteProduct(productId) {
+    const product = await productSchema.findOneAndUpdate(
+      { _id: productId },
+      { isDeleted: true },
+      { new: true }
+    );
+
+    return !!product;
   }
 }
 

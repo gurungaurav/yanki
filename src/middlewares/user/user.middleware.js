@@ -22,16 +22,7 @@ export const checkUserLogin = async (req, res, next) => {
     const user = await userService.getUserByEmail(userDTO.email);
 
     if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "Validation errors",
-        errors: [
-          {
-            field: "email",
-            message: "User has not been registered yet",
-          },
-        ],
-      });
+      throw new Error("User not found");
     }
 
     //Injecting the values for reusing

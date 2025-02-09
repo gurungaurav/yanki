@@ -21,7 +21,7 @@ authRoutes.post(
 );
 
 authRoutes.post(
-  "/loginUser",
+  "/login",
   loginLimiter,
   validateSchema(userLoginSchema),
   checkUserLogin,

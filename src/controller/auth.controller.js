@@ -45,22 +45,19 @@ class AuthController {
     try {
       const injectDTO = req.user;
       const userDTO = req.body;
+      console.log(injectDTO, userDTO, "jajsasj");
+
       const passCheck = await checkPassword(
         userDTO.password,
         injectDTO.password
       );
 
       if (!passCheck) {
-        return res.status(400).json({
-          success: false,
-          message: "Validation errors",
-          errors: [{ field: "password", message: "Password did'not matched" }],
-          // throw new Error("Password did'not matched", 400);
-        });
+        throw new Error("Password did'not matched", 400);
       }
 
       const jwtPayload = {
-        userId: injectDTO.userId,
+        userId: injectDTO._id,
         role: injectDTO.role,
       };
 
@@ -75,13 +72,6 @@ class AuthController {
         phoneNumber: injectDTO.phoneNumber,
         token: jwt,
       };
-
-      // res.cookie("token", jwt, {
-      //   httpOnly: true, // Must be false to access in JS
-      //   secure: false, // For local development. Set to true in production with HTTPS
-      //   sameSite: "strict",
-      //   maxAge: 10000000, //For a day 24 hrs
-      // });
 
       successHandler(res, 201, userDetails, "User logged in successfully!");
     } catch (e) {

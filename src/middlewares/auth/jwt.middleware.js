@@ -30,6 +30,7 @@ export const verifyAccessJwtTokenMiddleware = async (req, res, next) => {
     if (!verifiedToken) {
       throw new Error("Invalid token. Failed to verify token.", 401);
     }
+    console.log(verifiedToken, "jajsjas");
 
     const user = await userService.getUserById(verifiedToken.userId);
 

@@ -11,6 +11,7 @@ const ProductSchema = new mongoose.Schema({
   description: { type: String, required: true },
   price: { type: Number, required: true },
   stockQuantity: { type: Number, required: true },
+  isDeleted: { type: Boolean, default: false },
 });
 
 export const productSchema = mongoose.model("products", ProductSchema);

@@ -18,12 +18,14 @@ const adminAuth = async (req, res, next) => {
 
 const clientAuth = async (req, res, next) => {
   try {
-    if (req.user.role === "User") {
-      if (req.user.userId !== req.params.userId) {
-        console.log(req.user, req.params, "jajsjas");
+    console.log(req.user, "jajsjas");
 
-        throw new Error("You have no authorization non-user", 401);
-      }
+    if (req.user.role === "user") {
+      // if (req.user._id !== req.params._id) {
+      console.log(req.user, req.params, "jajsjas");
+
+      // throw new Error("You have no authorization non-user", 401);
+      // }
       next();
     } else {
       throw new Error("You have no authorization");

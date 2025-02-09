@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 const OrderDetailsSchema = new mongoose.Schema({
   orderId: {
     type: mongoose.Schema.Types.ObjectId,

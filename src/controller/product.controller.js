@@ -18,7 +18,7 @@ class ProductController {
       }
 
       const imagePaths = req.files.map((file) =>
-        path.join("uploads", file.filename)
+        path.join("http://localhost:8000/uploads", file.filename)
       );
 
       const categoryId = new mongoose.Types.ObjectId(productDTO.categoryId);
@@ -50,6 +50,70 @@ class ProductController {
         productAddition,
         "Product added successfully."
       );
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  getAllProducts = async (req, res, next) => {
+    try {
+      const filter = { isDeleted: false };
+
+      const { categoryId, minPrice, maxPrice, inStock, search } = req.body;
+      console.log(req.body);
+
+      if (categoryId) {
+        filter.categoryId = new mongoose.Types.ObjectId(categoryId);
+      }
+
+      if (minPrice !== undefined) {
+        // $gte (Greater Than or Equal) → Filters products with price >= minPrice
+        filter.price = { ...filter.price, $gte: minPrice };
+      }
+
+      if (maxPrice !== undefined) {
+        // $lte (Less Than or Equal) → Filters products with price <= maxPrice
+        filter.price = { ...filter.price, $lte: maxPrice };
+      }
+
+      if (inStock !== undefined) {
+        // $gt (Greater Than) → Filters products with stock > 0 (available)
+        // $eq (Equal) → Filters products with stock = 0 (out of stock)
+        filter.stockQuantity = inStock ? { $gt: 0 } : { $eq: 0 };
+      }
+
+      if (search) {
+        // $regex (Regular Expression) → Performs case-insensitive search on product name
+        filter.name = { $regex: search, $options: "i" };
+      }
+
+      const products = await productService.getProducts(filter);
+      return successHandler(res, 200, products, "All products fetched.");
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  getProductById = async (req, res, next) => {
+    try {
+      const productId = req.params.productId;
+      const product = await productService.getProductById(productId);
+      return successHandler(res, 200, product, "Product fetched successfully.");
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  softDeleteProduct = async (req, res, next) => {
+    try {
+      const productId = req.params.productId;
+      const isDeleted = await productService.softDeleteProduct(productId);
+
+      if (!isDeleted) {
+        throw new Error("Product not found.");
+      }
+
+      return successHandler(res, 200, null, "Product deleted successfully.");
     } catch (e) {
       next(e);
     }

@@ -10,7 +10,7 @@ class UserService {
   }
 
   async getUserByEmail(email) {
-    const user = await userSchema.findOne({ email }).select("-password");
+    const user = await userSchema.findOne({ email }).select();
 
     return user;
   }
