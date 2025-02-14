@@ -12,6 +12,11 @@ class ImageService {
   async addImage(imageDTO) {
     return await imageSchema.create(imageDTO);
   }
+
+  async deleteImage(imageId) {
+    const image = await imageSchema.findOneAndDelete({ _id: imageId });
+    return !!image;
+  }
 }
 
 export const imageService = new ImageService();

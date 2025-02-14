@@ -45,6 +45,17 @@ class ProductService {
 
     return !!product;
   }
+
+  //Create product update
+
+  async updateProduct(productId, updatedData) {
+    const product = await productSchema.findOneAndUpdate(
+      productId,
+      updatedData,
+      { new: true }
+    );
+    return product;
+  }
 }
 
 export const productService = new ProductService();

@@ -118,6 +118,58 @@ class ProductController {
       next(e);
     }
   };
+
+  updateProduct = async (req, res, next) => {
+    try {
+      const productId = req.params.productId;
+      const productDTO = req.body;
+      const images = productDTO.images || [];
+
+      // Validate product existence
+      const existingProduct = await productService.getProductById(productId);
+      if (!existingProduct) {
+        throw new Error("Product not found.");
+      }
+
+      // Construct updated product data
+      const updatedData = {
+        name: productDTO.name,
+        price: productDTO.price,
+        description: productDTO.description,
+        stockQuantity: productDTO.quantity,
+      };
+
+      // Update product
+      const updatedProduct = await productService.updateProduct(
+        productId,
+        updatedData
+      );
+
+      // Handle image updates
+      for (const image of images) {
+        if (image.id) {
+          // If image ID exists, delete it
+          await imageService.deleteImage(image.id);
+        } else if (image.file) {
+          // If no ID, add new image
+          const imagePath = path.join(
+            "http://localhost:8000/uploads",
+            image.file.filename
+          );
+          await imageService.addImage({ productId, imageUrl: imagePath });
+        }
+      }
+
+      return successHandler(
+        res,
+        200,
+        updatedProduct,
+        "Product updated successfully."
+      );
+    } catch (e) {
+      next(e);
+    }
+  };
 }
 
 export const productController = new ProductController();

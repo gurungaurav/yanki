@@ -47,6 +47,14 @@ class OrderService {
 
     return order;
   }
+
+  async getOrders(userId) {
+    const orders = await orderSchema.find({ userId }).select();
+    if (!orders.length) {
+      throw new Error("No orders found");
+    }
+    return orders;
+  }
 }
 
 export const orderService = new OrderService();
