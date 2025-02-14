@@ -5,6 +5,7 @@ import { productRoutes } from "./product.routes.js";
 import { adminRoutes } from "./admin.routes.js";
 import { AdminAuthRole } from "../middlewares/auth/roleAuth.middleware.js";
 import { orderRoutes } from "./order.routes.js";
+import { reviewRoutes } from "./reivew.routes.js";
 
 const indexRoutes = Router();
 
@@ -12,5 +13,6 @@ indexRoutes.use("/user", userRoutes);
 indexRoutes.use("/auth", authRoutes);
 indexRoutes.use("/product", productRoutes);
 indexRoutes.use("/order", orderRoutes);
+indexRoutes.use("/review", reviewRoutes);
 indexRoutes.use("/admin", AdminAuthRole(), adminRoutes);
 export default indexRoutes;
