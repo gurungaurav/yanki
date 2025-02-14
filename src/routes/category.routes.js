@@ -6,3 +6,8 @@ export const categoryRoutes = Router();
 categoryRoutes.get("/getCategories", categoryController.getCategories);
 
 categoryRoutes.post("/addCategory", categoryController.addCategory);
+
+categoryRoutes.delete(
+  "/deleteCategory/:categoryId",
+  categoryController.deleteCategory
+);

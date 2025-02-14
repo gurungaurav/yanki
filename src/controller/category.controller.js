@@ -33,6 +33,27 @@ class CategoryController {
       next(e);
     }
   };
+
+  deleteCategory = async (req, res, next) => {
+    try {
+      const { categoryId } = req.params; // Now correctly extracting from params
+
+      if (!categoryId) {
+        throw new Error("Category ID is required");
+      }
+
+      const response = await categoryService.deleteCategory(categoryId);
+
+      return successHandler(
+        res,
+        200,
+        response,
+        "Category deleted successfully."
+      );
+    } catch (e) {
+      next(e);
+    }
+  };
 }
 
 export const categoryController = new CategoryController();
