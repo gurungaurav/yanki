@@ -6,6 +6,7 @@ import { imageService } from "../services/image.service.js";
 import { productService } from "../services/product.service.js";
 import path from "path";
 import { imageSchema } from "../models/image.js";
+import { Console } from "console";
 
 //!Class for controlling authentication and authorization like login, regi,logout, refresh tokens, etc.
 class ProductController {
@@ -58,38 +59,40 @@ class ProductController {
   getAllProducts = async (req, res, next) => {
     try {
       const filter = { isDeleted: false };
-
       const { categoryId, minPrice, maxPrice, inStock, search } = req.body;
-      console.log(req.body);
+
+      console.log("Received Filters:", req.body);
 
       if (categoryId) {
         filter.categoryId = new mongoose.Types.ObjectId(categoryId);
       }
 
-      if (minPrice !== undefined) {
-        // $gte (Greater Than or Equal) → Filters products with price >= minPrice
-        filter.price = { ...filter.price, $gte: minPrice };
+      // Ensure price range values are numbers before applying filters
+      const min = minPrice !== undefined ? Number(minPrice) : undefined;
+      const max = maxPrice !== undefined ? Number(maxPrice) : undefined;
+
+      if (!isNaN(min) || !isNaN(max)) {
+        filter.price = {};
+        if (!isNaN(min)) filter.price.$gte = min;
+        if (!isNaN(max)) filter.price.$lte = max;
       }
 
-      if (maxPrice !== undefined) {
-        // $lte (Less Than or Equal) → Filters products with price <= maxPrice
-        filter.price = { ...filter.price, $lte: maxPrice };
-      }
-
+      // Handle stock availability filter
       if (inStock !== undefined) {
-        // $gt (Greater Than) → Filters products with stock > 0 (available)
-        // $eq (Equal) → Filters products with stock = 0 (out of stock)
         filter.stockQuantity = inStock ? { $gt: 0 } : { $eq: 0 };
       }
 
-      if (search) {
-        // $regex (Regular Expression) → Performs case-insensitive search on product name
-        filter.name = { $regex: search, $options: "i" };
+      // Ensure search term is not an empty string
+      if (search && search.trim() !== "") {
+        filter.name = { $regex: search.trim(), $options: "i" };
       }
+
+      console.log("Final MongoDB Filter:", JSON.stringify(filter, null, 2));
 
       const products = await productService.getProducts(filter);
       return successHandler(res, 200, products, "All products fetched.");
     } catch (e) {
+      console.error("Error fetching products:", e);
       next(e);
     }
   };
@@ -119,45 +122,79 @@ class ProductController {
     }
   };
 
+  // update product
   updateProduct = async (req, res, next) => {
     try {
-      const productId = req.params.productId;
-      const productDTO = req.body;
-      const images = productDTO.images || [];
+      const { productId } = req.params;
+      const { body: productDTO } = req; // Destructure to get product data from body
+      const images = req.files || []; // Correctly access the files (req.files)
 
-      // Validate product existence
+      console.log("Received Product ID:", productId);
+      console.log("Product Data from Body:", productDTO);
+      console.log("Uploaded Images:", images);
+
+      // Fetch the existing product to check for validity
       const existingProduct = await productService.getProductById(productId);
       if (!existingProduct) {
-        throw new Error("Product not found.");
+        console.log("Product not found.");
+        return next(new Error("Product not found."));
       }
+      console.log("Existing Product Found:", existingProduct);
 
-      // Construct updated product data
+      // Construct updated product data from the request body
       const updatedData = {
         name: productDTO.name,
         price: productDTO.price,
         description: productDTO.description,
-        stockQuantity: productDTO.quantity,
+        stockQuantity: productDTO.stockQuantity,
       };
 
-      // Update product
+      console.log("Updated Product Data:", updatedData);
+
+      // Update the product with new data
       const updatedProduct = await productService.updateProduct(
         productId,
         updatedData
       );
+      console.log("Updated Product:", updatedProduct);
 
-      // Handle image updates
-      for (const image of images) {
-        if (image.id) {
-          // If image ID exists, delete it
-          await imageService.deleteImage(image.id);
-        } else if (image.file) {
-          // If no ID, add new image
+      // Handle image updates: delete old images
+      if (Array.isArray(productDTO.imagesToDelete)) {
+        for (const imageId of productDTO.imagesToDelete) {
+          if (imageId.trim() !== "") {
+            // Ensure it's not an empty string
+            console.log(`Deleting image with ID: ${imageId}`);
+            await imageService.deleteImage(imageId);
+          }
+        }
+      }
+
+      // Handle image updates: delete old images
+      if (productDTO.imagesToDelete) {
+        const imageIdsToDelete = productDTO.imagesToDelete.split(","); // Assuming multiple IDs are comma-separated in body
+        console.log("Deleting images with IDs:", imageIdsToDelete);
+
+        for (const imageId of imageIdsToDelete) {
+          console.log(`Deleting image with ID: ${imageId}`);
+          await imageService.deleteImage(imageId);
+        }
+      } else {
+        console.log("No images to delete.");
+      }
+
+      // Skip image upload if no new images are provided
+      if (images.length > 0) {
+        console.log("Processing new images...");
+        for (const image of images) {
           const imagePath = path.join(
             "http://localhost:8000/uploads",
-            image.file.filename
+            image.filename
           );
+          console.log(`Adding new image with path: ${imagePath}`);
           await imageService.addImage({ productId, imageUrl: imagePath });
         }
+      } else {
+        console.log("No new images to upload.");
       }
 
       return successHandler(
@@ -166,8 +203,9 @@ class ProductController {
         updatedProduct,
         "Product updated successfully."
       );
-    } catch (e) {
-      next(e);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      next(error);
     }
   };
 }
