@@ -46,13 +46,12 @@ class ProductService {
     return !!product;
   }
 
-  //Create product update
-
+  // In productService.js
   async updateProduct(productId, updatedData) {
     const product = await productSchema.findOneAndUpdate(
-      productId,
-      updatedData,
-      { new: true }
+      { _id: productId }, // Use _id field to find the product
+      updatedData, // The updated data
+      { new: true } // Return the updated product
     );
     return product;
   }
