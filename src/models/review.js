@@ -14,6 +14,7 @@ const ReviewSchema = new mongoose.Schema({
   rating: { type: Number, required: true, min: 1, max: 5 },
   review: { type: String, required: true },
   reviewDate: { type: Date, default: Date.now },
+  isDeleted: { type: Boolean, default: false }, // Soft delete flag
 });
 
 export const reviewSchema = mongoose.model("reviews", ReviewSchema);
