@@ -6,7 +6,6 @@ import { imageService } from "../services/image.service.js";
 import { productService } from "../services/product.service.js";
 import path from "path";
 import { imageSchema } from "../models/image.js";
-import { Console } from "console";
 
 //!Class for controlling authentication and authorization like login, regi,logout, refresh tokens, etc.
 class ProductController {
