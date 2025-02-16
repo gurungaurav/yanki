@@ -15,6 +15,17 @@ class OrderController {
       next(e);
     }
   }
+
+  async getOrders(req, res, next) {
+    try {
+      const userId = req.user._id;
+      const orders = await orderService.getOrders(userId);
+
+      return successHandler(res, 200, orders, "Orders retrieved successfully.");
+    } catch (e) {
+      next(e);
+    }
+  }
 }
 
 export const orderController = new OrderController();
