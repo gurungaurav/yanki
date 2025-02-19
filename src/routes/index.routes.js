@@ -10,6 +10,7 @@ import {
 import { orderRoutes } from "./order.routes.js";
 import { reviewRoutes } from "./reivew.routes.js";
 import { categoryRoutes } from "./category.routes.js";
+import { messageRoutes } from "./message.route.js";
 
 const indexRoutes = Router();
 
@@ -20,4 +21,5 @@ indexRoutes.use("/order", orderRoutes);
 indexRoutes.use("/review", reviewRoutes);
 indexRoutes.use("/admin", AdminAuthRole(), adminRoutes);
 indexRoutes.use("/category", categoryRoutes);
+indexRoutes.use("/message", messageRoutes);
 export default indexRoutes;
