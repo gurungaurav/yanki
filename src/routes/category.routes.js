@@ -7,7 +7,7 @@ categoryRoutes.get("/getCategories", categoryController.getCategories);
 
 categoryRoutes.post("/addCategory", categoryController.addCategory);
 
-categoryRoutes.update(
+categoryRoutes.patch(
   "/updateCategory/:categoryId",
   categoryController.updateCategory
 );

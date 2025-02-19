@@ -43,6 +43,19 @@ class UserService {
     await user.save();
     return { message: "Password updated successfully" };
   }
+
+  async updateUser(userId, userDTO) {
+    const user = await userSchema.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const success = await userSchema
+      .findByIdAndUpdate(userId, userDTO, { new: true })
+      .select("-password");
+
+    return success;
+  }
 }
 
 export const userService = new UserService();

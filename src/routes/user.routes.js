@@ -5,3 +5,4 @@ export const userRoutes = Router();
 
 userRoutes.get("/getSpecificUser/:id", userController.getUserDetailsById);
 userRoutes.patch("/changePassword/:id", userController.changePassword);
+userRoutes.put("/updateUser/:id", userController.updateUserDetails);
