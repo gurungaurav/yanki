@@ -1,7 +1,8 @@
 import { successHandler } from "../handlers/success/successHandler.js";
+import { userService } from "../services/user.service.js";
 
 class UserController {
-  //For getting all users
+  //For getting all users used by admin
   getUserDetailsById = async (req, res, next) => {
     try {
       console.log(req.user, "user");
@@ -20,6 +21,8 @@ class UserController {
       next(e);
     }
   };
+
+  //change password of specific user
   changePassword = async (req, res, next) => {
     try {
       const { oldPassword, newPassword } = req.body;
@@ -35,6 +38,20 @@ class UserController {
         response,
         "Password changed successfully"
       );
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  //For updating user details
+  updateUserDetails = async (req, res, next) => {
+    try {
+      const userId = req.params.id;
+      const userDetails = req.body;
+
+      const response = await userService.updateUser(userId, userDetails);
+
+      return successHandler(res, 200, response, "User details updated");
     } catch (e) {
       next(e);
     }
