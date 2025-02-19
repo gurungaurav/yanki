@@ -5,8 +5,10 @@ class CategoryController {
   addCategory = async (req, res, next) => {
     try {
       const category = req.body;
+      console.log("----->", category);
 
       const categoryAddition = await categoryService.addCategory(category);
+      console.log("----->", categoryAddition);
 
       return successHandler(
         res,
@@ -28,6 +30,31 @@ class CategoryController {
         200,
         categories,
         "Categories fetched successfully."
+      );
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  updateCategory = async (req, res, next) => {
+    try {
+      const { categoryId } = req.params;
+      const category = req.body;
+
+      if (!categoryId) {
+        throw new Error("Category ID is required");
+      }
+
+      const response = await categoryService.updateCategory(
+        categoryId,
+        category
+      );
+
+      return successHandler(
+        res,
+        200,
+        response,
+        "Category updated successfully."
       );
     } catch (e) {
       next(e);
