@@ -1,13 +1,19 @@
 import { successHandler } from "../handlers/success/successHandler.js";
-import { userService } from "../services/user.service.js";
 
 class UserController {
   //For getting all users
   getUserDetailsById = async (req, res, next) => {
     try {
-      console.log(req.params, "user");
-
-      const userDetails = await userService.getUserById(req.params.id);
+      console.log(req.user, "user");
+      const user = req.user;
+      const userDetails = {
+        email: user.email,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phoneNumber: user.phoneNumber,
+        address: user.address,
+      };
 
       return successHandler(res, 200, userDetails, "Required user details");
     } catch (e) {

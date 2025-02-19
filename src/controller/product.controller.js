@@ -4,7 +4,6 @@ import { productSchema } from "../models/products.js";
 import { categoryService } from "../services/category.service.js";
 import { imageService } from "../services/image.service.js";
 import { productService } from "../services/product.service.js";
-import path from "path";
 import { imageSchema } from "../models/image.js";
 
 //!Class for controlling authentication and authorization like login, regi,logout, refresh tokens, etc.
@@ -17,16 +16,20 @@ class ProductController {
         throw new Error("Please upload at least one image.");
       }
 
-      const imagePaths = req.files.map((file) =>
-        path.join("http://localhost:8000/uploads", file.filename)
+      const imagePaths = req.files.map(
+        (file) => `http://localhost:8000/uploads/${file.filename}`
       );
+
+      if (!mongoose.Types.ObjectId.isValid(productDTO.categoryId)) {
+        throw new Error("Invalid Category ID");
+      }
 
       const categoryId = new mongoose.Types.ObjectId(productDTO.categoryId);
 
       await categoryService.getCategoryById(categoryId);
 
       const newProduct = new productSchema({
-        name: productDTO.name,
+        name: productDTO.productName,
         price: productDTO.price,
         description: productDTO.description,
         stockQuantity: productDTO.quantity,
@@ -57,12 +60,38 @@ class ProductController {
 
   getAllProducts = async (req, res, next) => {
     try {
-      const filter = { isDeleted: false };
-      const { categoryId, minPrice, maxPrice, inStock, search } = req.body;
+      const {
+        categoryId,
+        minPrice,
+        maxPrice,
+        inStock,
+        search,
+        productId,
+        limit = 5,
+        isDeleted,
+      } = req.query;
 
-      console.log("Received Filters:", req.body);
+      console.log("asdsad", req.query);
+      const filter = {};
+
+      console.log("Received Filters:", req.query);
+
+      //If the product id and category id exists then remove that specific product and show the categories according to the category id
+      if (productId && categoryId) {
+        if (!mongoose.Types.ObjectId.isValid(productId)) {
+          throw new Error("Invalid Product ID");
+        }
+        filter._id = { $ne: new mongoose.Types.ObjectId(productId) };
+      }
+
+      if (isDeleted !== undefined) {
+        filter.isDeleted = isDeleted;
+      }
 
       if (categoryId) {
+        if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+          throw new Error("Invalid Category ID");
+        }
         filter.categoryId = new mongoose.Types.ObjectId(categoryId);
       }
 
@@ -86,9 +115,16 @@ class ProductController {
         filter.name = { $regex: search.trim(), $options: "i" };
       }
 
+      // Pagination logic
+      const options = {
+        // page: parseInt(page),
+        limit: parseInt(limit),
+        // sort: { createdAt: -1 }, // Sort by creation date, newest first
+      };
+
       console.log("Final MongoDB Filter:", JSON.stringify(filter, null, 2));
 
-      const products = await productService.getProducts(filter);
+      const products = await productService.getProducts(filter, options);
       return successHandler(res, 200, products, "All products fetched.");
     } catch (e) {
       console.error("Error fetching products:", e);
@@ -109,11 +145,11 @@ class ProductController {
   softDeleteProduct = async (req, res, next) => {
     try {
       const productId = req.params.productId;
-      const isDeleted = await productService.softDeleteProduct(productId);
+      const { isDeleted } = req.body;
+      console.log("Received Product ID:", productId);
+      console.log("Is Deleted:", isDeleted);
 
-      if (!isDeleted) {
-        throw new Error("Product not found.");
-      }
+      await productService.softDeleteProduct(productId, isDeleted);
 
       return successHandler(res, 200, null, "Product deleted successfully.");
     } catch (e) {

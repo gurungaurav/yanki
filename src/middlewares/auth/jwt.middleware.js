@@ -6,6 +6,8 @@ export const verifyAccessJwtTokenMiddleware = async (req, res, next) => {
   try {
     const bearerToken = req.headers.authorization;
 
+    console.log(bearerToken, "bearerToken");
+
     // console.log(bearerToken);
 
     if (!bearerToken) {

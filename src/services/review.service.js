@@ -54,10 +54,11 @@ class ReviewService {
     }
 
     // Find all reviews for the product
-    const reviews = await reviewSchema.find({
-      productId: product,
-      isDeleted: false,
-    });
+    const reviews = await reviewSchema
+      .find({ productId: product, isDeleted: false })
+      .populate("userId", "username");
+
+    console.log(reviews);
 
     return reviews; // Return the reviews
   };
