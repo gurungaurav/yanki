@@ -65,11 +65,8 @@ class AuthController {
 
       //!Extend gareko userdetails lai with token variable
       const userDetails = {
-        userId: injectDTO.userId,
-        name: injectDTO.name,
-        email: injectDTO.email,
-        picture: injectDTO.picture,
-        phoneNumber: injectDTO.phoneNumber,
+        id: injectDTO._id,
+        username: injectDTO.username,
         token: jwt,
       };
 

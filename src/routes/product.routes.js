@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { categoryRoutes } from "./category.routes.js";
 import { productController } from "../controller/product.controller.js";
 import { upload } from "../config/multer.config.js";
 
@@ -31,9 +30,7 @@ productRoutes.put(
 );
 
 // Route to soft delete a product
-productRoutes.delete(
+productRoutes.patch(
   "/deleteProduct/:productId",
   productController.softDeleteProduct
 );
-
-productRoutes.use("/category", categoryRoutes);
