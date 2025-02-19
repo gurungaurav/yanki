@@ -63,6 +63,27 @@ class CategoryService {
 
     return { message: "Category deleted successfully" };
   }
+
+  async updateCategory(categoryId, categoryDTO) {
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+      throw new Error("Invalid Category ID");
+    }
+
+    // Check if category exists and is not already deleted
+    const category = await categorySchema.findOne({
+      _id: categoryId,
+      isDeleted: false,
+    });
+
+    if (!category) {
+      throw new Error("Category not found or already deleted");
+    }
+
+    // Update category
+    return await categorySchema.findByIdAndUpdate(categoryId, categoryDTO, {
+      new: true,
+    });
+  }
 }
 
 export const categoryService = new CategoryService();
