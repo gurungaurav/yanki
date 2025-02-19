@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import { orderSchema } from "../models/order.js";
 import { orderDetailsSchema } from "../models/orderDetails.js";
 import { productSchema } from "../models/products.js";
@@ -9,51 +8,105 @@ class OrderService {
       throw new Error("Order items cannot be empty.");
     }
 
-    // Create new order
+    let totalAmount = 0;
     const order = await orderSchema.create({ userId });
 
-    // Prepare order details
-    const orderDetails = orderItems.map((item) => ({
-      orderId: order._id,
-      productId: item.productId,
-      price: item.price,
-      quantity: item.quantity,
-    }));
+    const orderDetails = [];
+    const unavailableItems = [];
+
+    for (const item of orderItems) {
+      const product = await productSchema.findById(item.productId);
+
+      if (!product) {
+        unavailableItems.push({
+          productId: item.productId,
+          reason: "Product not found",
+        });
+        continue; // Skip to the next item
+      }
+
+      if (product.stockQuantity < item.quantity) {
+        unavailableItems.push({
+          productId: item.productId,
+          productName: product.name,
+          availableStock: product.stockQuantity,
+          requestedQuantity: item.quantity,
+          reason: "Insufficient stock",
+        });
+        continue; // Skip to the next item
+      }
+
+      // Reduce stock without session
+      await productSchema.updateOne(
+        { _id: item.productId },
+        { $inc: { stockQuantity: -item.quantity } }
+      );
+
+      orderDetails.push({
+        orderId: order._id,
+        productId: item.productId,
+        price: product.price,
+        quantity: item.quantity,
+      });
+
+      totalAmount += product.price * item.quantity;
+    }
+
+    if (orderDetails.length === 0) {
+      throw new Error("No items available for order.");
+    }
 
     // Insert order details
     await orderDetailsSchema.insertMany(orderDetails);
 
-    // Update stock for each product
-    for (const item of orderItems) {
-      //check the product quantity
-      const productId = new mongoose.Types.ObjectId(item.productId);
-
-      const product = await productSchema.findById(productId);
-      console.log(product, "jjajaaj");
-
-      if (!product) {
-        throw new Error("Required product did not found : " + item.productId);
-      }
-
-      if (product.stockQuantity > 0) {
-        throw new Error("Insufficient stock for product: " + product.name);
-      }
-
-      await productSchema.updateOne(
-        { _id: item.productId },
-        { $inc: { stockQuantity: -item.quantity } } // Reduce stock
-      );
-    }
-
-    return order;
+    return {
+      orderId: order._id,
+      totalAmount,
+      items: orderDetails,
+      unavailableItems,
+      message: unavailableItems.length
+        ? "Order placed partially. Some items were unavailable."
+        : "Order placed successfully.",
+    };
   }
 
   async getOrders(userId) {
-    const orders = await orderSchema.find({ userId }).select();
+    const orders = await orderSchema.find({ userId });
+
     if (!orders.length) {
-      throw new Error("No orders found");
+      throw new Error("No orders found.");
     }
-    return orders;
+
+    // Fetch order details for each order
+    const ordersWithDetails = await Promise.all(
+      orders.map(async (order) => {
+        const orderDetails = await orderDetailsSchema
+          .find({ orderId: order._id })
+          .lean();
+
+        // Fetch product details for each order item
+        const orderItems = await Promise.all(
+          orderDetails.map(async (item) => {
+            const product = await productSchema.findById(item.productId).lean();
+            return {
+              productId: item.productId,
+              productName: product ? product.name : "Product Not Found",
+              price: item.price,
+              quantity: item.quantity,
+            };
+          })
+        );
+
+        return {
+          orderId: order._id,
+          orderDate: order.orderDate,
+          orderStatus: order.orderStatus,
+          items: orderItems,
+        };
+      })
+    );
+
+    return ordersWithDetails;
   }
 }
 

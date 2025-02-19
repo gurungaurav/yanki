@@ -1,4 +1,5 @@
 import { userSchema } from "../models/user.js";
+import { checkPassword, hashPassword } from "../utils/bcryptPass.js";
 
 class UserService {
   async getUserById(userId) {
@@ -25,6 +26,22 @@ class UserService {
 
   async registerUser(userDTO) {
     return await userSchema.create(userDTO);
+  }
+
+  async changePassword(userId, oldPassword, newPassword) {
+    const user = await userSchema.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const isMatch = await checkPassword(oldPassword, user.password);
+    if (!isMatch) {
+      throw new Error("Incorrect current password");
+    }
+
+    user.password = await hashPassword(newPassword);
+    await user.save();
+    return { message: "Password updated successfully" };
   }
 }
 

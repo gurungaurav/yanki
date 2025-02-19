@@ -20,6 +20,25 @@ class UserController {
       next(e);
     }
   };
+  changePassword = async (req, res, next) => {
+    try {
+      const { oldPassword, newPassword } = req.body;
+      const userId = req.params.id;
+      const response = await userService.changePassword(
+        userId,
+        oldPassword,
+        newPassword
+      );
+      return successHandler(
+        res,
+        200,
+        response,
+        "Password changed successfully"
+      );
+    } catch (e) {
+      next(e);
+    }
+  };
 }
 
 export const userController = new UserController();
