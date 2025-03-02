@@ -6,6 +6,7 @@ class UserController {
     try {
       console.log(req.user, "user");
       const user = req.user;
+
       const userDetails = {
         email: user.email,
         username: user.username,
@@ -20,6 +21,7 @@ class UserController {
       next(e);
     }
   };
+
   changePassword = async (req, res, next) => {
     try {
       const { oldPassword, newPassword } = req.body;

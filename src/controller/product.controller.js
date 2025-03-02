@@ -145,11 +145,11 @@ class ProductController {
   softDeleteProduct = async (req, res, next) => {
     try {
       const productId = req.params.productId;
-      const { isDeleted } = req.body;
       console.log("Received Product ID:", productId);
-      console.log("Is Deleted:", isDeleted);
 
-      await productService.softDeleteProduct(productId, isDeleted);
+      const product = await productService.getProductById(productId);
+
+      await productService.softDeleteProduct(product._id, product.isDeleted);
 
       return successHandler(res, 200, null, "Product deleted successfully.");
     } catch (e) {
@@ -161,7 +161,7 @@ class ProductController {
   updateProduct = async (req, res, next) => {
     try {
       const { productId } = req.params;
-      const { body: productDTO } = req; // Destructure to get product data from body
+      const productDTO = req.body; // Destructure to get product data from body
       const images = req.files || []; // Correctly access the files (req.files)
 
       console.log("Received Product ID:", productId);
@@ -176,13 +176,23 @@ class ProductController {
       }
       console.log("Existing Product Found:", existingProduct);
 
-      // Construct updated product data from the request body
-      const updatedData = {
-        name: productDTO.name,
-        price: productDTO.price,
-        description: productDTO.description,
-        stockQuantity: productDTO.stockQuantity,
-      };
+      const updatedData = {};
+
+      if (productDTO.name) {
+        updatedData.name = productDTO.name;
+      }
+
+      if (productDTO.price) {
+        updatedData.price = productDTO.price;
+      }
+
+      if (productDTO.description) {
+        updatedData.description = productDTO.description;
+      }
+
+      if (productDTO.stockQuantity) {
+        updatedData.stockQuantity = productDTO.stockQuantity;
+      }
 
       console.log("Updated Product Data:", updatedData);
 
@@ -192,44 +202,49 @@ class ProductController {
         updatedData
       );
       console.log("Updated Product:", updatedProduct);
-
+      const deletedImages = JSON.parse(productDTO.imagesToDelete);
       // Handle image updates: delete old images
-      if (Array.isArray(productDTO.imagesToDelete)) {
-        for (const imageId of productDTO.imagesToDelete) {
+      if (Array.isArray(deletedImages)) {
+        for (const imageId of deletedImages) {
+          console.log(imageId, "assas");
+
           if (imageId.trim() !== "") {
             // Ensure it's not an empty string
             console.log(`Deleting image with ID: ${imageId}`);
-            await imageService.deleteImage(imageId);
+            await imageService.deleteImage(
+              new mongoose.Types.ObjectId(imageId)
+            );
           }
         }
       }
 
-      // Handle image updates: delete old images
-      if (productDTO.imagesToDelete) {
-        const imageIdsToDelete = productDTO.imagesToDelete.split(","); // Assuming multiple IDs are comma-separated in body
-        console.log("Deleting images with IDs:", imageIdsToDelete);
+      // // Handle image updates: delete old images
+      // if (productDTO.imagesToDelete) {
+      //   const imageIdsToDelete = productDTO.imagesToDelete.split(","); // Assuming multiple IDs are comma-separated in body
+      //   console.log("Deleting images with IDs:", imageIdsToDelete);
 
-        for (const imageId of imageIdsToDelete) {
-          console.log(`Deleting image with ID: ${imageId}`);
-          await imageService.deleteImage(imageId);
-        }
-      } else {
-        console.log("No images to delete.");
-      }
+      //   for (const imageId of imageIdsToDelete) {
+      //     console.log(`Deleting image with ID: ${imageId}`);
+      //     await imageService.deleteImage(imageId);
+      //   }
+      // } else {
+      //   console.log("No images to delete.");
+      // }
 
       // Skip image upload if no new images are provided
       if (images.length > 0) {
         console.log("Processing new images...");
-        for (const image of images) {
-          const imagePath = path.join(
-            "http://localhost:8000/uploads",
-            image.filename
-          );
-          console.log(`Adding new image with path: ${imagePath}`);
-          await imageService.addImage({ productId, imageUrl: imagePath });
+        const imagePaths = req.files.map(
+          (file) => `http://localhost:8000/uploads/${file.filename}`
+        );
+        for (const imagePath of imagePaths) {
+          const imageDTO = new imageSchema({
+            productId: productId,
+            imageUrl: imagePath,
+          });
+
+          await imageService.addImage(imageDTO);
         }
-      } else {
-        console.log("No new images to upload.");
       }
 
       return successHandler(

@@ -11,3 +11,8 @@ categoryRoutes.delete(
   "/deleteCategory/:categoryId",
   categoryController.deleteCategory
 );
+
+categoryRoutes.put(
+  "/updateCategory/:categoryId",
+  categoryController.updateCategory
+);

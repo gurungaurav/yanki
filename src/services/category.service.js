@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 import { categorySchema } from "../models/category.js";
+import { productSchema } from "../models/products.js";
 
 class CategoryService {
-  async getCategories() {
-    const categories = await categorySchema.find({ isDeleted: false });
+  async getCategories(filters) {
+    const categories = await categorySchema.find(filters);
 
     if (!categories.length) {
       throw new Error("No categories found");
@@ -48,20 +49,60 @@ class CategoryService {
       throw new Error("Invalid Category ID");
     }
 
-    // Check if category exists and is not already deleted
+    // Check if category exists
     const category = await categorySchema.findOne({
       _id: categoryId,
-      isDeleted: false,
     });
 
     if (!category) {
       throw new Error("Category not found or already deleted");
     }
 
+    // Check if there are any products associated with this category
+    const associatedProducts = await productSchema.find({
+      categoryId: categoryId,
+      isDeleted: false,
+    });
+
+    if (associatedProducts.length > 0) {
+      const productNames = associatedProducts
+        .map((product) => product.name)
+        .join(", ");
+      throw new Error(
+        `Cannot delete category. It is associated with the following products: ${productNames}`
+      );
+    }
+
+    // If the category is already deleted, it will be undeleted
+    const isDeleted = !category.isDeleted;
+
     // Soft delete by setting `isDeleted: true`
-    await categorySchema.findByIdAndUpdate(categoryId, { isDeleted: true });
+    await categorySchema.findByIdAndUpdate(categoryId, { isDeleted });
 
     return { message: "Category deleted successfully" };
+  }
+
+  async updateCategory(categoryId, name) {
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+      throw new Error("Invalid Category ID");
+    }
+    console.log(categoryId, name, "sdsdsdsd");
+
+    // Check if category exists and is not already deleted
+    const category = await categorySchema.findOne({
+      _id: categoryId,
+    });
+
+    if (!category) {
+      throw new Error("Category not found or already deleted");
+    }
+
+    // Update category
+    return await categorySchema.findOneAndUpdate(
+      { _id: categoryId },
+      { name },
+      { new: true } // Return the updated document
+    );
   }
 }
 

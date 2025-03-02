@@ -11,6 +11,6 @@ export const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL;
 //!JWT
 export const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
-//!GMAIL SECRET
-export const GMAIL_SECRET_USER = process.env.GMAIL_SECRET_USER;
-export const GMAIL_SECRET_PASS = process.env.GMAIL_SECRET_PASS;
+//!KHALTI
+export const KHALTI_SECRET_KEY = process.env.KHALTI_SECRET_KEY;
+export const KHALTI_GATEWAY_URL = process.env.KHALTI_GATEWAY_URL;

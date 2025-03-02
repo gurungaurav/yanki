@@ -19,7 +19,17 @@ class ReviewController {
   getAllReviews = async (req, res, next) => {
     try {
       const { productId } = req.params;
-      const reviews = await reviewService.getAllReviews(productId);
+      const { isDeleted } = req.query;
+      console.log(req.query, "sdsasasa");
+
+      const filters = {};
+
+      if (isDeleted) {
+        filters.isDeleted = isDeleted;
+      }
+      console.log(filters, "sdsasasa");
+
+      const reviews = await reviewService.getAllReviews(productId, filters);
 
       return successHandler(res, 200, reviews, "Reviews fetched successfully.");
     } catch (e) {
@@ -30,6 +40,7 @@ class ReviewController {
   deleteReview = async (req, res, next) => {
     try {
       const { reviewId } = req.params;
+
       const response = await reviewService.deleteReview(reviewId);
 
       return successHandler(res, 200, response, "Review deleted successfully.");

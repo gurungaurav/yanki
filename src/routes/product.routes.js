@@ -22,7 +22,7 @@ productRoutes.get(
 );
 
 // Route to update a product
-productRoutes.put(
+productRoutes.patch(
   "/updateProduct/:productId",
   upload.array("images", 10), // Handle image uploads while updating
   // validateSchema(updateProductSchema), // Validate the request body for the update
