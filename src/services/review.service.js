@@ -14,20 +14,6 @@ class ReviewService {
       throw new Error("Product not found");
     }
 
-    console.log("---->", userId);
-
-    //check if the user id exists or not
-    const existUser = await userService.getUserById(userId);
-    if (!existUser) {
-      throw new Error("User not found");
-    }
-
-    // Check if the user has already reviewed this product
-    // const existingReview = await reviewSchema.findOne({ productId, userId });
-    // if (existingReview) {
-    //   throw new Error("You have already reviewed this product");
-    // }
-
     // Create a new review
     const reviewData = {
       productId,
@@ -43,7 +29,7 @@ class ReviewService {
     return newReview; // Return the newly created review
   };
 
-  getAllReviews = async (productId) => {
+  getAllReviews = async (productId, filters) => {
     // Convert productId from params into an ObjectId
     const product = new mongoose.Types.ObjectId(productId);
 
@@ -55,7 +41,7 @@ class ReviewService {
 
     // Find all reviews for the product
     const reviews = await reviewSchema
-      .find({ productId: product, isDeleted: false })
+      .find({ productId: product, ...filters })
       .populate("userId", "username");
 
     console.log(reviews);
@@ -64,9 +50,15 @@ class ReviewService {
   };
 
   deleteReview = async (reviewId) => {
+    const existReview = await reviewSchema.findOne({ _id: reviewId });
+
+    if (!existReview) {
+      throw new Error("Review not found");
+    }
+
     const review = await reviewSchema.findOneAndUpdate(
       { _id: reviewId },
-      { isDeleted: true },
+      { isDeleted: !existReview.isDeleted },
       { new: true }
     );
     return !!review;

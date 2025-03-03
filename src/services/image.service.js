@@ -14,6 +14,8 @@ class ImageService {
   }
 
   async deleteImage(imageId) {
+    console.log(imageId, "assas");
+
     const image = await imageSchema.findOneAndDelete({ _id: imageId });
     return !!image;
   }

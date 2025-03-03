@@ -12,7 +12,7 @@ class MessageController {
         res,
         201,
         messageAddition,
-        "Message added successfully."
+        "Message sent successfully."
       );
     } catch (e) {
       next(e);

@@ -7,6 +7,7 @@ class UserController {
     try {
       console.log(req.user, "user");
       const user = req.user;
+
       const userDetails = {
         email: user.email,
         username: user.username,
@@ -22,11 +23,22 @@ class UserController {
     }
   };
 
+  //get all users
+  getAllUsers = async (req, res, next) => {
+    try {
+      const users = await userService.getAllUsers();
+      return successHandler(res, 200, users, "All users fetched successfully");
+    } catch (e) {
+      next(e);
+    }
+  };
+
   //change password of specific user
   changePassword = async (req, res, next) => {
     try {
       const { oldPassword, newPassword } = req.body;
-      const userId = req.params.id;
+      const userId = req.user._id;
+
       const response = await userService.changePassword(
         userId,
         oldPassword,
@@ -46,12 +58,12 @@ class UserController {
   //For updating user details
   updateUserDetails = async (req, res, next) => {
     try {
-      const userId = req.params.id;
+      const userId = req.user._id;
       const userDetails = req.body;
 
-      const response = await userService.updateUser(userId, userDetails);
+      await userService.updateUser(userId, userDetails);
 
-      return successHandler(res, 200, response, "User details updated");
+      return successHandler(res, 200, null, "User details updated");
     } catch (e) {
       next(e);
     }

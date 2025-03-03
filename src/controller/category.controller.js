@@ -23,7 +23,15 @@ class CategoryController {
 
   getCategories = async (req, res, next) => {
     try {
-      const categories = await categoryService.getCategories();
+      //if isDeleted is passed in query then it will be passed to getCategories method and if it is not passed then it will be false
+      const { isDeleted } = req.query;
+      const filters = {};
+
+      if (isDeleted) {
+        filters.isDeleted = isDeleted;
+      }
+
+      const categories = await categoryService.getCategories(filters);
 
       return successHandler(
         res,
@@ -76,6 +84,28 @@ class CategoryController {
         200,
         response,
         "Category deleted successfully."
+      );
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  updateCategory = async (req, res, next) => {
+    try {
+      const { categoryId } = req.params;
+      const { name } = req.body;
+
+      if (!categoryId) {
+        throw new Error("Category ID is required");
+      }
+
+      const response = await categoryService.updateCategory(categoryId, name);
+
+      return successHandler(
+        res,
+        200,
+        response,
+        "Category updated successfully."
       );
     } catch (e) {
       next(e);

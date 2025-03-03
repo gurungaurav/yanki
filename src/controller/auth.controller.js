@@ -67,6 +67,7 @@ class AuthController {
       const userDetails = {
         id: injectDTO._id,
         username: injectDTO.username,
+        role: injectDTO.role,
         token: jwt,
       };
 

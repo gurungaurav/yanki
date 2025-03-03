@@ -14,7 +14,7 @@ class ProductService {
     const productid = new mongoose.Types.ObjectId(productId);
 
     const product = await productSchema
-      .findOne({ _id: productid, isDeleted: false })
+      .findOne({ _id: productid })
       .populate("categoryId", "name")
       .lean();
 
@@ -38,6 +38,7 @@ class ProductService {
 
     const products = await productSchema
       .find(filter)
+      .sort({ createdAt: -1 })
       // .sort(sort)
       // .skip(skip)
       .limit(limit)
@@ -92,7 +93,7 @@ class ProductService {
   async softDeleteProduct(productId, isDeleted) {
     const product = await productSchema.findOneAndUpdate(
       { _id: productId },
-      { isDeleted },
+      { isDeleted: !isDeleted },
       { new: true }
     );
 
