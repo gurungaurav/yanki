@@ -1,5 +1,6 @@
 import { BASE_URL } from "../../secret.js";
 import { successHandler } from "../handlers/success/successHandler.js";
+import { paymentSchema } from "../models/payment.js";
 import {
   initializeKhaltiPayment,
   verifyKhaltiPayment,
@@ -13,9 +14,56 @@ class OrderController {
       const userId = req.user._id;
       console.log(req.user, "jajsjasrfejb");
 
-      const { website_url, orderItems, totalPrice } = req.body;
-      const order = await orderService.placeOrder(userId, orderItems);
-      console.log(order, "orderId");
+      const {
+        website_url,
+        orderItems,
+        totalPrice,
+        purchase_order_id,
+        paymentMethod,
+        userDetails,
+      } = req.body;
+
+      console.log(req.body, "req.body");
+      let existingOrder;
+
+      if (purchase_order_id) {
+        existingOrder = await orderService.getSpecifcOrder(purchase_order_id);
+      }
+
+      console.log(existingOrder, "existingOrder");
+
+      // if order already exists, return the existing order if not create a new order
+      //This is for the case if the payment is not completed and user tries to place the order again
+      let order;
+      if (existingOrder) {
+        order = existingOrder;
+        console.log("existing order", order);
+      } else {
+        order = await orderService.placeOrder(
+          userId,
+          orderItems,
+          paymentMethod
+        );
+        await userService.updateUser(userId, userDetails);
+
+        if (paymentMethod === "cod") {
+          console.log("cod order", order);
+
+          await paymentSchema.create({
+            orderId: order.orderId,
+            paymentMethod: "Cash on Delivery",
+            amount: order.totalAmount,
+          });
+
+          return successHandler(
+            res,
+            201,
+            { orderId: order.orderId },
+            "Order placed successfully."
+          );
+        }
+        console.log("new order", order);
+      }
 
       const paymentInitate = await initializeKhaltiPayment({
         amount: totalPrice * 100, // amount should be in paisa (Rs * 100)

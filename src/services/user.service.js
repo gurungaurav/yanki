@@ -17,10 +17,15 @@ class UserService {
   }
 
   async getAllUsers() {
-    const users = await userSchema.find().select("-password");
-    if (!users.length) {
-      throw new Error("No users found");
-    }
+    //exclude role admin
+    const users = await userSchema
+      .find({
+        role: {
+          $ne: "admin",
+        },
+      })
+      .select("-password");
+
     return users;
   }
 
@@ -30,6 +35,7 @@ class UserService {
 
   async changePassword(userId, oldPassword, newPassword) {
     const user = await userSchema.findById(userId);
+
     if (!user) {
       throw new Error("User not found");
     }
@@ -42,6 +48,19 @@ class UserService {
     user.password = await hashPassword(newPassword);
     await user.save();
     return { message: "Password updated successfully" };
+  }
+
+  async updateUser(userId, userDTO) {
+    const user = await userSchema.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const success = await userSchema
+      .findByIdAndUpdate(userId, userDTO, { new: true })
+      .select("-password");
+
+    return success;
   }
 }
 

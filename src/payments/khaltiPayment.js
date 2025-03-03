@@ -40,7 +40,7 @@ export async function verifyKhaltiPayment(pidx, orderId, userId) {
       "Content-Type": "application/json",
     };
 
-    const checkOrder = await orderService.getOrder(userId, orderId);
+    const checkOrder = await orderService.getSpecifcOrder(orderId);
     console.log(checkOrder, "checkOrder");
 
     if (checkOrder.orderStatus === "shipped") {

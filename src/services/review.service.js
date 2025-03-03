@@ -2,7 +2,6 @@ import { productService } from "./product.service.js"; // Import the productServ
 import { reviewSchema } from "../models/review.js"; // Import the review model
 import { userService } from "./user.service.js"; // Import the userService
 import mongoose from "mongoose";
-import { categorySchema } from "../models/category.js";
 
 class ReviewService {
   addReview = async (reviewDTO, userId) => {

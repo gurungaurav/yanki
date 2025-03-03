@@ -8,13 +8,16 @@ import { imageSchema } from "../models/image.js";
 import { userService } from "./user.service.js";
 
 class OrderService {
-  async placeOrder(userId, orderItems) {
+  async placeOrder(userId, orderItems, paymentMethod) {
     if (!orderItems || orderItems.length === 0) {
       throw new Error("Order items cannot be empty.");
     }
 
     let totalAmount = 0;
-    const order = await orderSchema.create({ userId });
+    const order = await orderSchema.create({
+      userId,
+      orderStatus: paymentMethod === "cod" ? "shipped" : "pending",
+    });
 
     const orderDetails = [];
     const unavailableItems = [];
@@ -89,18 +92,26 @@ class OrderService {
           .findOne({ orderId: order._id })
           .lean();
 
+        console.log(payment, "payment");
+
         const user = await userService.getUserById(order.userId);
 
-        const orderDetailsCount = await orderDetailsSchema.countDocuments({
+        const orderDetails = await orderDetailsSchema.find({
           orderId: order._id,
         });
+
+        //calculate total amount
+        const totalAmount = orderDetails.reduce(
+          (total, item) => total + item.price * item.quantity,
+          0
+        );
 
         return {
           orderId: order._id,
           orderDate: order.orderDate,
           orderStatus: order.orderStatus,
-          totalAmount: payment.amount,
-          ordersCount: orderDetailsCount,
+          totalAmount,
+          ordersCount: orderDetails.length,
           username: user.username,
         };
       })
@@ -113,7 +124,10 @@ class OrderService {
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       throw new Error("Invalid order ID.");
     }
+    console.log(orderId, "orderId");
+
     const order = await orderSchema.findOne({ _id: orderId }).lean();
+    console.log(order, "order");
 
     if (!order) {
       throw new Error("Order not found.");
