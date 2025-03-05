@@ -5,9 +5,8 @@ class ReviewController {
   addReview = async (req, res, next) => {
     try {
       const reviewDTO = req.body;
-      const userId = req.user._id; // Access userId from req.user (set by JWT middleware)
+      const userId = req.user._id;
 
-      // Pass userId and reviewDTO to service method
       const newReview = await reviewService.addReview(reviewDTO, userId);
 
       return successHandler(res, 201, newReview, "Review added successfully.");
@@ -20,18 +19,29 @@ class ReviewController {
     try {
       const { productId } = req.params;
       const { isDeleted } = req.query;
-      console.log(req.query, "sdsasasa");
 
       const filters = {};
 
       if (isDeleted) {
         filters.isDeleted = isDeleted;
       }
-      console.log(filters, "sdsasasa");
 
       const reviews = await reviewService.getAllReviews(productId, filters);
 
       return successHandler(res, 200, reviews, "Reviews fetched successfully.");
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  updateReview = async (req, res, next) => {
+    try {
+      const { reviewId } = req.params;
+      const reviewDTO = req.body;
+
+      await reviewService.updateReview(reviewId, reviewDTO);
+
+      return successHandler(res, 200, null, "Review updated successfully.");
     } catch (e) {
       next(e);
     }

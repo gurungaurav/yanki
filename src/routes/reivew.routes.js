@@ -6,4 +6,5 @@ export const reviewRoutes = Router();
 
 reviewRoutes.post("/addReview", ClientAuthRole(), reviewController.addReview);
 reviewRoutes.get("/getAllReviews/:productId", reviewController.getAllReviews);
+reviewRoutes.put("/updateReview/:reviewId", reviewController.updateReview);
 reviewRoutes.delete("/deleteReview/:reviewId", reviewController.deleteReview);

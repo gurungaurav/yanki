@@ -1,6 +1,5 @@
 import { productService } from "./product.service.js"; // Import the productService
 import { reviewSchema } from "../models/review.js"; // Import the review model
-import { userService } from "./user.service.js"; // Import the userService
 import mongoose from "mongoose";
 
 class ReviewService {
@@ -10,6 +9,7 @@ class ReviewService {
 
     // Check if the product exists
     const existProduct = await productService.getProductById(productId);
+
     if (!existProduct) {
       throw new Error("Product not found");
     }
@@ -24,9 +24,7 @@ class ReviewService {
     };
 
     // Save the review in the database
-    const newReview = await reviewSchema.create(reviewData);
-
-    return newReview; // Return the newly created review
+    return await reviewSchema.create(reviewData);
   };
 
   getAllReviews = async (productId, filters) => {
@@ -40,13 +38,24 @@ class ReviewService {
     }
 
     // Find all reviews for the product
-    const reviews = await reviewSchema
+    return await reviewSchema
       .find({ productId: product, ...filters })
       .populate("userId", "username");
+  };
 
-    console.log(reviews);
+  updateReview = async (reviewId, reviewDTO) => {
+    // Check if the review exists
+    const review = await reviewSchema.findOne({ _id: reviewId });
 
-    return reviews; // Return the reviews
+    if (!review) {
+      throw new Error("Review not found");
+    }
+
+    return await reviewSchema.findOneAndUpdate(
+      { _id: reviewId },
+      { ...reviewDTO },
+      { new: true }
+    );
   };
 
   deleteReview = async (reviewId) => {
@@ -56,12 +65,11 @@ class ReviewService {
       throw new Error("Review not found");
     }
 
-    const review = await reviewSchema.findOneAndUpdate(
+    return await reviewSchema.findOneAndUpdate(
       { _id: reviewId },
       { isDeleted: !existReview.isDeleted },
       { new: true }
     );
-    return !!review;
   };
 }
 

@@ -4,13 +4,7 @@ import { productSchema } from "../models/products.js";
 
 class CategoryService {
   async getCategories(filters) {
-    const categories = await categorySchema.find(filters);
-
-    if (!categories.length) {
-      throw new Error("No categories found");
-    }
-
-    return categories;
+    return await categorySchema.find(filters);
   }
 
   async getCategoryById(categoryId) {
@@ -77,16 +71,13 @@ class CategoryService {
     const isDeleted = !category.isDeleted;
 
     // Soft delete by setting `isDeleted: true`
-    await categorySchema.findByIdAndUpdate(categoryId, { isDeleted });
-
-    return { message: "Category deleted successfully" };
+    return await categorySchema.findByIdAndUpdate(categoryId, { isDeleted });
   }
 
   async updateCategory(categoryId, name) {
     if (!mongoose.Types.ObjectId.isValid(categoryId)) {
       throw new Error("Invalid Category ID");
     }
-    console.log(categoryId, name, "sdsdsdsd");
 
     // Check if category exists and is not already deleted
     const category = await categorySchema.findOne({

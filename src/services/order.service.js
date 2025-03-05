@@ -84,16 +84,11 @@ class OrderService {
       ? await orderSchema.find({ userId, ...filters }).lean()
       : await orderSchema.find({ ...filters }).lean();
 
-    console.log(orders, "aaaaa");
-
     const orderDetails = await Promise.all(
       orders.map(async (order) => {
         const payment = await paymentSchema
           .findOne({ orderId: order._id })
           .lean();
-
-        console.log(payment, "payment");
-
         const user = await userService.getUserById(order.userId);
 
         const orderDetails = await orderDetailsSchema.find({
@@ -111,6 +106,7 @@ class OrderService {
           orderDate: order.orderDate,
           orderStatus: order.orderStatus,
           totalAmount,
+          paymentMethod: payment ? payment.paymentMethod : "Payment in process",
           ordersCount: orderDetails.length,
           username: user.username,
         };
@@ -183,9 +179,10 @@ class OrderService {
       throw new Error("Order not found.");
     }
 
-    await orderSchema.updateOne({ _id: orderId }, { orderStatus: status });
-
-    return { message: "Order updated successfully." };
+    return await orderSchema.updateOne(
+      { _id: orderId },
+      { orderStatus: status }
+    );
   }
 
   async deleteOrder(userId, orderId) {
@@ -195,21 +192,17 @@ class OrderService {
       throw new Error("Order not found.");
     }
 
-    await orderSchema.deleteOne({ _id: orderId });
-
-    return { message: "Order deleted successfully." };
+    return await orderSchema.deleteOne({ _id: orderId });
   }
 
   async completeKhaltiPayment(orderId, totalAmount) {
     await orderSchema.updateOne({ _id: orderId }, { orderStatus: "shipped" });
 
-    await paymentSchema.create({
+    return await paymentSchema.create({
       orderId,
       paymentMethod: "Khalti",
       amount: totalAmount / 100,
     });
-
-    return { message: "Payment completed successfully." };
   }
 
   async cancelOrder(userId, orderId) {
