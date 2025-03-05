@@ -6,14 +6,9 @@ class MessageController {
     try {
       const message = req.body;
 
-      const messageAddition = await messageService.addMessage(message);
+      await messageService.addMessage(message);
 
-      return successHandler(
-        res,
-        201,
-        messageAddition,
-        "Message sent successfully."
-      );
+      return successHandler(res, 201, null, "Message sent successfully.");
     } catch (e) {
       next(e);
     }

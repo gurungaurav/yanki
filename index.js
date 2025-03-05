@@ -19,6 +19,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 //For image
 app.use("/uploads", express.static("uploads"));
 

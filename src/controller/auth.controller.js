@@ -15,6 +15,12 @@ class AuthController {
         throw new Error("Password should match", 400);
       }
 
+      const userExists = await userService.getUserByEmail(userDTO.email);
+
+      if (userExists) {
+        throw new Error("User has already been registered");
+      }
+
       const hashedPass = await hashPassword(userDTO.confirmPassword);
 
       const newUser = new userSchema({
@@ -28,14 +34,9 @@ class AuthController {
         role: userDTO.role,
       });
 
-      const userAddition = await userService.registerUser(newUser);
+      await userService.registerUser(newUser);
 
-      return successHandler(
-        res,
-        201,
-        userAddition,
-        "User registered successfully."
-      );
+      return successHandler(res, 201, null, "User registered successfully.");
     } catch (e) {
       next(e);
     }
@@ -43,53 +44,36 @@ class AuthController {
 
   loginUser = async (req, res, next) => {
     try {
-      const injectDTO = req.user;
       const userDTO = req.body;
-      console.log(injectDTO, userDTO, "jajsasj");
 
-      const passCheck = await checkPassword(
-        userDTO.password,
-        injectDTO.password
-      );
+      const user = await userService.getUserByEmail(userDTO.email);
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const passCheck = await checkPassword(userDTO.password, user.password);
 
       if (!passCheck) {
         throw new Error("Password did'not matched", 400);
       }
 
       const jwtPayload = {
-        userId: injectDTO._id,
-        role: injectDTO.role,
+        userId: user._id,
+        role: user.role,
       };
 
       const jwt = JWTCreation(jwtPayload);
 
       //!Extend gareko userdetails lai with token variable
       const userDetails = {
-        id: injectDTO._id,
-        username: injectDTO.username,
-        role: injectDTO.role,
+        id: user._id,
+        username: user.username,
+        role: user.role,
         token: jwt,
       };
 
       successHandler(res, 201, userDetails, "User logged in successfully!");
-    } catch (e) {
-      next(e);
-    }
-  };
-
-  logout = async (req, res, next) => {
-    try {
-      const cookies = req.cookies;
-
-      if (!cookies?.token) throw new Error("No token recieved", 204);
-
-      res.clearCookie("token", {
-        httpOnly: true,
-        sameSite: "strict",
-        secure: true,
-      });
-
-      return successHandler(res, 200, null, "Cookie cleared logged out");
     } catch (e) {
       next(e);
     }

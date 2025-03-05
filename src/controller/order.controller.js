@@ -12,7 +12,6 @@ class OrderController {
   async createOrder(req, res, next) {
     try {
       const userId = req.user._id;
-      console.log(req.user, "jajsjasrfejb");
 
       const {
         website_url,
@@ -23,21 +22,17 @@ class OrderController {
         userDetails,
       } = req.body;
 
-      console.log(req.body, "req.body");
       let existingOrder;
 
       if (purchase_order_id) {
         existingOrder = await orderService.getSpecifcOrder(purchase_order_id);
       }
 
-      console.log(existingOrder, "existingOrder");
-
       // if order already exists, return the existing order if not create a new order
       //This is for the case if the payment is not completed and user tries to place the order again
       let order;
       if (existingOrder) {
         order = existingOrder;
-        console.log("existing order", order);
       } else {
         order = await orderService.placeOrder(
           userId,
@@ -47,8 +42,6 @@ class OrderController {
         await userService.updateUser(userId, userDetails);
 
         if (paymentMethod === "cod") {
-          console.log("cod order", order);
-
           await paymentSchema.create({
             orderId: order.orderId,
             paymentMethod: "Cash on Delivery",
@@ -62,7 +55,6 @@ class OrderController {
             "Order placed successfully."
           );
         }
-        console.log("new order", order);
       }
 
       const paymentInitate = await initializeKhaltiPayment({
@@ -129,11 +121,8 @@ class OrderController {
     try {
       const { pidx, orderId } = req.body;
       const userId = req.user._id;
-      console.log(req.user, pidx, orderId, "jajsjasrfejb");
 
       const paymentDetails = await verifyKhaltiPayment(pidx, orderId, userId);
-
-      console.log(paymentDetails, "paymentDetails");
 
       await orderService.completeKhaltiPayment(
         orderId,
@@ -182,7 +171,6 @@ class OrderController {
       if (status) {
         filters.orderStatus = status;
       }
-      console.log(filters, "sdsasasa");
 
       const orders = await orderService.getOrders(undefined, filters);
 

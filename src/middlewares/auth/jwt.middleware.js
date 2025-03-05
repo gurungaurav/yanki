@@ -2,13 +2,9 @@ import { userService } from "../../services/user.service.js";
 import { JWTVerification } from "../../utils/token-manager.js";
 
 //! This is the actual verification of the jwt
-export const verifyAccessJwtTokenMiddleware = async (req, res, next) => {
+export const verifyJwtTokenMiddleware = async (req, res, next) => {
   try {
     const bearerToken = req.headers.authorization;
-
-    console.log(bearerToken, "bearerToken");
-
-    // console.log(bearerToken);
 
     if (!bearerToken) {
       throw new Error("Access Token expired", 401);
@@ -32,7 +28,6 @@ export const verifyAccessJwtTokenMiddleware = async (req, res, next) => {
     if (!verifiedToken) {
       throw new Error("Invalid token. Failed to verify token.", 401);
     }
-    console.log(verifiedToken, "jajsjas");
 
     const user = await userService.getUserById(verifiedToken.userId);
 

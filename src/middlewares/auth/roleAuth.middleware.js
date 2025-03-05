@@ -1,12 +1,8 @@
-import { verifyAccessJwtTokenMiddleware } from "./jwt.middleware.js";
+import { verifyJwtTokenMiddleware } from "./jwt.middleware.js";
 
 const adminAuth = async (req, res, next) => {
   try {
-    // console.log(req.user);
-
     if (req.user.role === "Admin") {
-      // console.log("pass");
-
       next();
     } else {
       throw new Error("You have no authorization");
@@ -18,14 +14,7 @@ const adminAuth = async (req, res, next) => {
 
 const clientAuth = async (req, res, next) => {
   try {
-    console.log(req.user, "jajsjas");
-
     if (req.user.role === "user") {
-      // if (req.user._id !== req.params._id) {
-      console.log(req.user, req.params, "jajsjas");
-
-      // throw new Error("You have no authorization non-user", 401);
-      // }
       next();
     } else {
       throw new Error("You have no authorization");
@@ -36,9 +25,9 @@ const clientAuth = async (req, res, next) => {
 };
 
 export const AdminAuthRole = () => {
-  return [verifyAccessJwtTokenMiddleware, adminAuth];
+  return [verifyJwtTokenMiddleware, adminAuth];
 };
 
 export const ClientAuthRole = () => {
-  return [verifyAccessJwtTokenMiddleware, clientAuth];
+  return [verifyJwtTokenMiddleware, clientAuth];
 };

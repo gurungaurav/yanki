@@ -1,5 +1,4 @@
-import multer, { FileFilterCallback, Multer } from "multer";
-import Error from "../handlers/errors/Error";
+import multer from "multer";
 
 // Multer storage configuration
 const storage = multer.memoryStorage();

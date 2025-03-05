@@ -30,37 +30,45 @@ class UserService {
   }
 
   async registerUser(userDTO) {
+    const checkUser = await userSchema.findOne({ username: userDTO.username });
+
+    if (checkUser) {
+      throw new Error("Username already exists");
+    }
+
     return await userSchema.create(userDTO);
   }
 
   async changePassword(userId, oldPassword, newPassword) {
+    if (oldPassword === newPassword) {
+      throw new Error("Password cannot be same as old password");
+    }
+    //again fetch user to get password of the user
     const user = await userSchema.findById(userId);
 
-    if (!user) {
-      throw new Error("User not found");
-    }
-
     const isMatch = await checkPassword(oldPassword, user.password);
+
     if (!isMatch) {
-      throw new Error("Incorrect current password");
+      throw new Error("Incorrect old password");
     }
 
-    user.password = await hashPassword(newPassword);
-    await user.save();
-    return { message: "Password updated successfully" };
+    const hashedPassword = await hashPassword(newPassword);
+
+    return await userSchema.findByIdAndUpdate(user._id, {
+      password: hashedPassword,
+    });
   }
 
   async updateUser(userId, userDTO) {
-    const user = await userSchema.findById(userId);
-    if (!user) {
-      throw new Error("User not found");
+    const checkUser = await userSchema.findOne({ username: userDTO.username });
+
+    if (checkUser) {
+      throw new Error("Username already exists");
     }
 
-    const success = await userSchema
-      .findByIdAndUpdate(userId, userDTO, { new: true })
-      .select("-password");
-
-    return success;
+    return await userSchema.findByIdAndUpdate(userId, userDTO, {
+      new: true,
+    });
   }
 }
 

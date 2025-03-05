@@ -5,10 +5,8 @@ class CategoryController {
   addCategory = async (req, res, next) => {
     try {
       const category = req.body;
-      console.log("----->", category);
 
       const categoryAddition = await categoryService.addCategory(category);
-      console.log("----->", categoryAddition);
 
       return successHandler(
         res,
@@ -23,7 +21,6 @@ class CategoryController {
 
   getCategories = async (req, res, next) => {
     try {
-      //if isDeleted is passed in query then it will be passed to getCategories method and if it is not passed then it will be false
       const { isDeleted } = req.query;
       const filters = {};
 
@@ -44,47 +41,13 @@ class CategoryController {
     }
   };
 
-  updateCategory = async (req, res, next) => {
-    try {
-      const { categoryId } = req.params;
-      const category = req.body;
-
-      if (!categoryId) {
-        throw new Error("Category ID is required");
-      }
-
-      const response = await categoryService.updateCategory(
-        categoryId,
-        category
-      );
-
-      return successHandler(
-        res,
-        200,
-        response,
-        "Category updated successfully."
-      );
-    } catch (e) {
-      next(e);
-    }
-  };
-
   deleteCategory = async (req, res, next) => {
     try {
       const { categoryId } = req.params; // Now correctly extracting from params
 
-      if (!categoryId) {
-        throw new Error("Category ID is required");
-      }
+      await categoryService.deleteCategory(categoryId);
 
-      const response = await categoryService.deleteCategory(categoryId);
-
-      return successHandler(
-        res,
-        200,
-        response,
-        "Category deleted successfully."
-      );
+      return successHandler(res, 201, null, "Category deleted successfully.");
     } catch (e) {
       next(e);
     }
@@ -95,18 +58,9 @@ class CategoryController {
       const { categoryId } = req.params;
       const { name } = req.body;
 
-      if (!categoryId) {
-        throw new Error("Category ID is required");
-      }
+      await categoryService.updateCategory(categoryId, name);
 
-      const response = await categoryService.updateCategory(categoryId, name);
-
-      return successHandler(
-        res,
-        200,
-        response,
-        "Category updated successfully."
-      );
+      return successHandler(res, 201, null, "Category updated successfully.");
     } catch (e) {
       next(e);
     }

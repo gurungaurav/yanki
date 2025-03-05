@@ -34,13 +34,10 @@ class ProductService {
 
   async getProducts(filter, options) {
     const { limit } = options;
-    // const skip = (page - 1) * limit;
 
     const products = await productSchema
       .find(filter)
       .sort({ createdAt: -1 })
-      // .sort(sort)
-      // .skip(skip)
       .limit(limit)
       .populate("categoryId", "name")
       .lean();
@@ -51,37 +48,13 @@ class ProductService {
           .find({ productId: product._id })
           .select("imageUrl");
 
-        // Fetch reviews
-        const reviews = await reviewSchema
-          .find({ productId: product._id })
-          .lean();
-
-        const reviewsArray = reviews || []; // Ensure `reviews` is always an array
-
-        // Calculate the reviews count
-        const reviewsCount = reviewsArray.length;
-
-        // Calculate the average rating (rounded to nearest 0.5)
-        const totalRating = reviewsArray.reduce(
-          (acc, review) => acc + (review.rating || 0),
-          0
-        );
-        const averageRating =
-          reviewsCount > 0
-            ? Math.round((totalRating / reviewsCount) * 2) / 2 // Round to nearest 0.5
-            : 0;
-
         return {
           ...product,
           image: images[0].imageUrl,
           hoverImage: images[1].imageUrl,
-          rating: averageRating,
-          reviewsCount,
         };
       })
     );
-
-    // console.log(productList);
 
     return productList;
   }
@@ -91,23 +64,20 @@ class ProductService {
   }
 
   async softDeleteProduct(productId, isDeleted) {
-    const product = await productSchema.findOneAndUpdate(
+    return await productSchema.findOneAndUpdate(
       { _id: productId },
       { isDeleted: !isDeleted },
       { new: true }
     );
-
-    return !!product;
   }
 
   // In productService.js
   async updateProduct(productId, updatedData) {
-    const product = await productSchema.findOneAndUpdate(
+    return await productSchema.findOneAndUpdate(
       { _id: productId }, // Use _id field to find the product
       updatedData, // The updated data
       { new: true } // Return the updated product
     );
-    return product;
   }
 }
 

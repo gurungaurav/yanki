@@ -5,7 +5,6 @@ class UserController {
   //For getting all users used by admin
   getUserDetailsById = async (req, res, next) => {
     try {
-      console.log(req.user, "user");
       const user = req.user;
 
       const userDetails = {
@@ -39,17 +38,9 @@ class UserController {
       const { oldPassword, newPassword } = req.body;
       const userId = req.user._id;
 
-      const response = await userService.changePassword(
-        userId,
-        oldPassword,
-        newPassword
-      );
-      return successHandler(
-        res,
-        200,
-        response,
-        "Password changed successfully"
-      );
+      await userService.changePassword(userId, oldPassword, newPassword);
+
+      return successHandler(res, 200, null, "Password changed successfully");
     } catch (e) {
       next(e);
     }

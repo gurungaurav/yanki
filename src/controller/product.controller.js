@@ -71,10 +71,7 @@ class ProductController {
         isDeleted,
       } = req.query;
 
-      console.log("asdsad", req.query);
       const filter = {};
-
-      console.log("Received Filters:", req.query);
 
       //If the product id and category id exists then remove that specific product and show the categories according to the category id
       if (productId && categoryId) {
@@ -115,19 +112,13 @@ class ProductController {
         filter.name = { $regex: search.trim(), $options: "i" };
       }
 
-      // Pagination logic
       const options = {
-        // page: parseInt(page),
         limit: parseInt(limit),
-        // sort: { createdAt: -1 }, // Sort by creation date, newest first
       };
-
-      console.log("Final MongoDB Filter:", JSON.stringify(filter, null, 2));
 
       const products = await productService.getProducts(filter, options);
       return successHandler(res, 200, products, "All products fetched.");
     } catch (e) {
-      console.error("Error fetching products:", e);
       next(e);
     }
   };
@@ -145,7 +136,6 @@ class ProductController {
   softDeleteProduct = async (req, res, next) => {
     try {
       const productId = req.params.productId;
-      console.log("Received Product ID:", productId);
 
       const product = await productService.getProductById(productId);
 
@@ -164,17 +154,11 @@ class ProductController {
       const productDTO = req.body; // Destructure to get product data from body
       const images = req.files || []; // Correctly access the files (req.files)
 
-      console.log("Received Product ID:", productId);
-      console.log("Product Data from Body:", productDTO);
-      console.log("Uploaded Images:", images);
-
       // Fetch the existing product to check for validity
       const existingProduct = await productService.getProductById(productId);
       if (!existingProduct) {
-        console.log("Product not found.");
-        return next(new Error("Product not found."));
+        throw new Error("Product not found.");
       }
-      console.log("Existing Product Found:", existingProduct);
 
       const updatedData = {};
 
@@ -194,42 +178,34 @@ class ProductController {
         updatedData.stockQuantity = productDTO.stockQuantity;
       }
 
-      console.log("Updated Product Data:", updatedData);
+      if (productDTO.categoryId) {
+        if (!mongoose.Types.ObjectId.isValid(productDTO.categoryId)) {
+          throw new Error("Invalid Category ID");
+        }
+
+        updatedData.categoryId = new mongoose.Types.ObjectId(
+          productDTO.categoryId
+        );
+      }
 
       // Update the product with new data
       const updatedProduct = await productService.updateProduct(
         productId,
         updatedData
       );
-      console.log("Updated Product:", updatedProduct);
+
       const deletedImages = JSON.parse(productDTO.imagesToDelete);
       // Handle image updates: delete old images
       if (Array.isArray(deletedImages)) {
         for (const imageId of deletedImages) {
-          console.log(imageId, "assas");
-
           if (imageId.trim() !== "") {
             // Ensure it's not an empty string
-            console.log(`Deleting image with ID: ${imageId}`);
             await imageService.deleteImage(
               new mongoose.Types.ObjectId(imageId)
             );
           }
         }
       }
-
-      // // Handle image updates: delete old images
-      // if (productDTO.imagesToDelete) {
-      //   const imageIdsToDelete = productDTO.imagesToDelete.split(","); // Assuming multiple IDs are comma-separated in body
-      //   console.log("Deleting images with IDs:", imageIdsToDelete);
-
-      //   for (const imageId of imageIdsToDelete) {
-      //     console.log(`Deleting image with ID: ${imageId}`);
-      //     await imageService.deleteImage(imageId);
-      //   }
-      // } else {
-      //   console.log("No images to delete.");
-      // }
 
       // Skip image upload if no new images are provided
       if (images.length > 0) {
