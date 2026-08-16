@@ -84,6 +84,8 @@ class OrderService {
       ? await orderSchema.find({ userId, ...filters }).lean()
       : await orderSchema.find({ ...filters }).lean();
 
+    console.log(orders, "orders");
+
     const orderDetails = await Promise.all(
       orders.map(async (order) => {
         const payment = await paymentSchema

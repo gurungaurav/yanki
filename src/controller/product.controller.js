@@ -67,7 +67,7 @@ class ProductController {
         inStock,
         search,
         productId,
-        limit = 5,
+        limit = 100,
         isDeleted,
       } = req.query;
 
